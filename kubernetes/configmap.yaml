@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: task-application-config
+data:
+  MONGO_HOST: mongodb-service
+  MONGO_PORT: "27017"
+  MONGO_DB: taskmanager
+  
