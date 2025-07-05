@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask
+  template:
+    metadata:
+      labels:
+        app: flask
+    spec:
+      containers:
+      - name: flask
+        image: pancysan/task-manager:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+        env:
+        - name: MONGO_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: task-application-config
+              key: MONGO_HOST
+        - name: MONGO_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: task-application-config
+              key: MONGO_PORT
+        - name: MONGO_DB
+          valueFrom:
+            configMapKeyRef:
+              name: task-application-config
+              key: MONGO_DB
+        - name: MONGO_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: task-app-secrets
+              key: MONGO_USERNAME
+        - name: MONGO_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: task-app-secrets
+              key: MONGO_PASSWORD
+        - name: FLASK_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: task-app-secrets
+              key: FLASK_SECRET_KEY
