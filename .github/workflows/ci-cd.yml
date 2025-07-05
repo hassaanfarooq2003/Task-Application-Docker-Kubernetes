@@ -1,0 +1,62 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: 
+      - dev
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        cd app
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Lint 
+      run: |
+        cd app
+        pylint app.py --disable=R,C
+
+  docker-build:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Docker Image
+      run: docker build -t task-manager .
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+    
+    - name: Push to Docker Hub
+      run: |
+        docker tag task-manager ${{ secrets.DOCKER_HUB_USERNAME }}/task-manager:${{ github.sha }}
+        docker push ${{ secrets.DOCKER_HUB_USERNAME }}/task-manager:${{ github.sha }}
+
+  deploy:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Update Kubernetes Deployment
+      run: |
+        sed -i 's|image: pancysan/task-manager:latest|image: ${{ secrets.DOCKER_HUB_USERNAME }}/task-manager:${{ github.sha }}|g' kubernetes/flask-deployment.yaml
+        sed -i "s|FLASK_SECRET_KEY:.*|FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}|g" kubernetes/secret.yaml
+
