@@ -1,7 +1,9 @@
 # Task-Application-Docker-Kubernetes
 Created Task Manager using Docker and Kubernetes
+<br>
 This application uses Flask and MongoDB. Its main purpose is to allow users to add, complete, and delete tasks. The application is containerized using Docker and can be deployed using Kubernetes.
-
+<be>
+Uses Github Actions Workflow to automate the process and verifying it
 ## Prerequisites
 - Docker and Docker Compose installed
 - Kubernetes cluster
